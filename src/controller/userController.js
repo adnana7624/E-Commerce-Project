@@ -121,3 +121,21 @@ export const login = async(req, res) => {
         })
     }
 }
+
+export const logout = async(req, res) =>{
+    try {
+        const userId = req.id
+        await Session.deleteMany({userId:userId})
+        await User.findByIdAndUpdate(userId, {isLogedIn : false})
+
+        return res.status(200).json({
+            success: true,
+            message : "user LogOut successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message : error.message
+        })
+    }
+}
