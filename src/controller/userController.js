@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { verifyEmail } from "../verifyEmail/verifyEmail.js";
 import { Session } from "../models/sessionModel.js";
+import { sendOtpMail } from "../verifyEmail/sendOtpMail.js";
 
 
 export const register = async(req , res)=>{
@@ -136,6 +137,39 @@ export const logout = async(req, res) =>{
         return res.status(500).json({
             success: false,
             message : error.message
+        })
+    }
+}
+
+export const forgotPassword = async(req , res ) => {
+    try {
+        const {email} = req.body
+        const user = await User.findOne({email})
+        if(!user){
+            return res.status(400).json({
+                success: false,
+                message:" user not found"
+            })
+        }
+
+        const otp = Math.floor(100000+Math.random()*900000).toString()
+        const otpExpiry = new Date(Date.now()+10*60*1000)
+
+        user.otp = otp
+        user.otpExpiry = otpExpiry
+
+        await user.save()
+        await sendOtpMail(otp , email)
+
+        return res.status(200).json({
+            success : true,
+            message : "otp send successfully"
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success : false,
+            message: error.message
         })
     }
 }

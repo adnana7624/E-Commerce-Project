@@ -5,8 +5,10 @@ import { User } from "../models/userModel.js";
 
 export const isAuthenticated = async(req , res , next) => {
     try {
+        
         const authHeader = req.headers.authorization
-        if(!authHeader || !authHeader.startsWith("Bearer")){
+        
+        if(!authHeader ) {
             return res.status(400).json({
                 success : false,
                 message : "authorization token is mising or invalid"
@@ -19,13 +21,22 @@ export const isAuthenticated = async(req , res , next) => {
             decoded = jwt.verify(token, process.env.JWT_SECRET)
             
         } catch (error) {
-            if(error.name === "tokenExpiredError"){
+            if(error.name === "TokenExpiredError"){
                 return res.status(400).json({
                     success : false,
                     message : "jwt token is expired"
                 })
             }
+            return res.status(400).json({
+            success : false,
+            message : "Invalid token"
+        })
+
         }
+        console.log("Authorization:", authHeader);
+        console.log("Token:", token);
+        console.log("Decoded:", decoded);
+        
 
         const user = await User.findById(decoded.id)
         if(!user){
