@@ -173,3 +173,69 @@ export const forgotPassword = async(req , res ) => {
         })
     }
 }
+
+export const veriftyOtp = async (req , res) =>{
+    try {
+        const {otp } = req.body
+        const email = req.params.email
+
+        if(!otp){
+            return res.status(400).json({
+                success : false,
+                message : "otp is required"
+            })
+        }
+        const user = await User.findOne({email})
+        if(!user){
+            return res.status(400).json({
+                success : false,
+                message : "user not found"
+            })
+        }
+        if(!user.otp || !user.otpExpiry){
+            return res.status(400).json({
+                success : false ,
+                message : "otp is alredya verify or expidre"
+            })
+        }
+        if(user.otpExpiry < new Date()){
+            return res.status(400).json({
+                success :false ,
+                message : "otp expired please request a new ine to send"
+            })
+        }
+        if(otp !== user.otp ){
+            return res.status(400).json({
+                success : false,
+                message : "otp is invalid"
+            })
+        }
+        user.otp = null
+        user.otpExpiry = null
+        await user.save()
+
+        return res.status(200).json({
+            success : true,
+            message : "orp verified successfully"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success : false, 
+            message : error.message
+        })
+    }
+}
+
+// const changePassword = async(req,res )=>{
+//     try {
+//         const {newPassword , confirmPassword} = req.body
+//         const {email} = req.params.email
+
+        
+//     } catch (error) {
+//         return res.status(500).json({
+//             success : false,
+//             message : error.message
+//         })
+//     }
+// }
