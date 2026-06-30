@@ -226,16 +226,40 @@ export const veriftyOtp = async (req , res) =>{
     }
 }
 
-// const changePassword = async(req,res )=>{
-//     try {
-//         const {newPassword , confirmPassword} = req.body
-//         const {email} = req.params.email
+export const changePassword = async(req,res )=>{
+    try {
+        const {newPassword , confirmPassword} = req.body
+        const {email} = req.params.email
 
+        const user = await User.findOne({email})
+        console.log(user)
+        if(!user){
+            return res.status(400).json({
+                success : false,
+                message : "user not found"
+            })
+        }
+        if(!newPassword || ! confirmPassword){
+            return res.status(400).json({
+                success : false,
+                message : "password donot match"
+            })
+        }
         
-//     } catch (error) {
-//         return res.status(500).json({
-//             success : false,
-//             message : error.message
-//         })
-//     }
-// }
+        const hashedPassword = await  bcrypt.hash(newPassword , 10)
+        
+        user.password = hashedPassword
+        await user.save()
+
+        return res.status(200).json({
+            success : true,
+            message : " password change successfully"
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success : false,
+            message : error.message
+        })
+    }
+}
